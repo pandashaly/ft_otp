@@ -52,7 +52,7 @@ def ft_save(file_name):
 	print('SUCCESSSSS! Your key was successfully saved in ft_otp.key.')
 
 def ft_is_valid_hex(key):
-	if len(key) < 64 or not re.match("^[0-9a-fA-F]{64}$", key):
+	if len(key) < 64 or not re.match("^[0-9a-fA-F]{64}$", key) or len(key) % 2 == 1:
 		print(ERR_64)
 		return False
 	try:
