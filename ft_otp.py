@@ -17,15 +17,12 @@ import sys
 import argparse
 from cryptography.fernet import Fernet
 import string
+import hashlib
+import hmac
 import time
 
 ERR_64 = "Error: The key must be 64 hexidecimal characters."
-
-def check_args(args):
-	for x in args:
-		if "." in x:
-			return 1
-	return 2
+secret_key = None
 
 def parse_arguments():
 	parser = argparse.ArgumentParser(description="""*** ft_otp *** This is a double factor of autentication tool based 
@@ -38,7 +35,6 @@ def parse_arguments():
 		parser.error("Try -h for help.")
 	# if args.g and args.k:
 	# 	parser.error("You cannot use both '-g' and '-k' at the same time.")
-	
 	return args
 
 def is_valid_hex(key):
@@ -52,36 +48,41 @@ def is_valid_hex(key):
 		print(ERR_64)
 		return False
 
-#def check_key(args):
-#	if is_valid_hex(args):
-#		print("key looks sigma")
+def otp_gen(secret_key):
+	# Convert the secret_key (hex) to bytes
+	byte_key = bytes.fromhex(secret_key)
 
-#	with = open("ft_otp.key", "w"):
-#	sys.stdout = file
-#	sys.stdout = original_stdout
-#	print("Key was successfully saved in ft_otp.key.")
+	current_time_step = int(time.time() // 30) # 30 sec intervals bc thats what most auth apps use
+	counter_bytes = struct.pack(">Q", current_time_step)  # 8-byte counter (BIG-endiannnn - its baso a longlong)
+	hmac_key = hmac.new(byte_key, counter_bytes, hashlib.sha1).digest()
 
-def en(args):
+	offset = hmac_result[-1] & 0x0F
+	truncated_hash = hmac_result[offset:offset + 4]
 
-	key = Fernet.generate_key()
-	fernet = Fernet(key)
-	encKey = fernet.encrypt(args.encode())
-	return encKey
+	# Convert truncated hash to an integer and mask to ensure it's positive
+	otp = struct.unpack(">I", truncated_hash)[0] & 0x7FFFFFFF
+	otp = otp % 1000000  # 6-digit OTP
+
+	return str(otp).zfill(6)
 
 def main():
-	args = parse_arguments()  # Parse arguments and check them
-	
-	# Example of how you can use the arguments:
+	args = parse_arguments()
 	if args.g:
 		with open(args.g, "r") as file:
-			secret_key = file.read().strip()  # Read the key from the file
-		# check_key(secret_key)
-		print(secret_key)
+			secret_key = file.read().strip()
+		if is_valid_hex(secret_key):
+			print(f"Key: {secret_key} is valid.")
+		else:
+			print("Error: Invalid Key format.")
+			return
 	if args.k:
-		if all(c in string.hexdigits for c in secret_key):
-			byte_key = bytes.fromhex(secret_key)
-		print(f"Generating OTP with the stored key.")
-
+		if 'secret_key':
+			otp = otp_gen(secret_key)
+			print(f"Generated OTP: {otp}")
+		else:
+			print("Error: Key is required to generate OTP. Use the -g option to provide the key.")
+		# if all(c in string.hexdigits for c in secret_key):
+		# 	byte_key = bytes.fromhex(secret_key)
 
 if __name__ == "__main__":
 	main()
