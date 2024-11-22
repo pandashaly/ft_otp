@@ -12,6 +12,7 @@
 #                                                                              #
 # **************************************************************************** #
 
+from cryptography.fernet import Fernet
 import os
 import sys
 import re
@@ -63,7 +64,13 @@ def ft_is_valid_hex(key):
 		return False
 
 def ft_otp(arg):
-	with open(arg, "r") as file:
+	with open(arg, "rb") as file:
+		encrypted_key = file.read()
+		try:
+			secret_key = fernet.decrypt(encrypted_key).decode()
+		except Exception as e:
+			print(f"Error: Unable to decrypt the key: {e}")
+			return
 		secret_key = file.read().strip()
 		byte_key = bytes.fromhex(secret_key) # convert to bytes
 		current_time_step = int(time.time() // 30)  # 30 sec intervals (TOTP)
