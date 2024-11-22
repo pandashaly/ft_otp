@@ -23,7 +23,7 @@ import hashlib
 import hmac
 import time
 
-ERR_64 = "Error: The key must be 64 hexidecimal characters."
+ERR_64 = "Error: The key must be at least 64 hexidecimal characters."
 
 def ft_parse_arguments():
 	parser = argparse.ArgumentParser(description="""*** ft_otp *** OTP Generator""")
@@ -49,10 +49,10 @@ def ft_save(file_name):
 		encrypted_str = hash_obj.hexdigest()
 		with open('ft_otp.key', 'w') as key_key:
 			key_key.write(encrypted_str)
-	print('SUCCESSSSS! Key was successfully saved in ft_otp.key.')
+	print('SUCCESSSSS! Your key was successfully saved in ft_otp.key.')
 
 def ft_is_valid_hex(key):
-	if len(key) < 64 or not re.match("^[0-9a-fA-F]{64}$", key[0]):
+	if len(key) < 64 or not re.match("^[0-9a-fA-F]{64}$", key):
 		print(ERR_64)
 		return False
 	try:
@@ -62,17 +62,18 @@ def ft_is_valid_hex(key):
 		print(ERR_64)
 		return False
 
-def ft_otp(secret_key):
-	byte_key = bytes.fromhex(secret_key) # convert to bytes
-	current_time_step = int(time.time() // 30)  # 30 sec intervals (TOTP)
-	counter_bytes = struct.pack(">Q", current_time_step) #convert into a BIG endian (baso a longlong)
-	hmac_key = hmac.new(byte_key, counter_bytes, hashlib.sha1).digest()
-	offset = hmac_key[-1] & 15  # truncated hash
-	truncated_hash = hmac_key[offset:offset + 4]
-	otp_t = struct.unpack(">I", truncated_hash)[0] & 0x7FFFFFFF #convert to int and mask to ensure its + value
-	otp = str(otp_t % 1000000).zfill(6)
-
-	return otp
+def ft_otp(arg):
+	with open(arg, "r") as file:
+		secret_key = file.read().strip()
+		byte_key = bytes.fromhex(secret_key) # convert to bytes
+		current_time_step = int(time.time() // 30)  # 30 sec intervals (TOTP)
+		counter_bytes = struct.pack(">Q", current_time_step) #convert into a BIG endian (baso a longlong)
+		hmac_key = hmac.new(byte_key, counter_bytes, hashlib.sha1).digest()
+		offset = hmac_key[-1] & 15  # truncated hash
+		truncated_hash = hmac_key[offset:offset + 4]
+		otp_t = struct.unpack(">I", truncated_hash)[0] & 0x7FFFFFFF #convert to int and mask to ensure its + value
+		otp = str(otp_t % 10**6).zfill(6)
+	print(f"Generated OTP: {otp}")
 
 def ft_basic_checks(arg, file_t, typ):
 	if arg.endswith(file_t) == False:
@@ -95,10 +96,7 @@ def main():
 	if args.g:
 		ft_save(args.g)
 	elif args.k:
-		secret_key = ft_basic_checks(args.k, ".key", "key")  # Validate and read the key
-		if secret_key:
-			otp = ft_otp(secret_key)  # Generate OTP using the stored key
-			print(f"Generated OTP: {otp}")
+			ft_otp(args.k)  # Generate OTP using the stored key
 
 if __name__ == "__main__":
 	main()
