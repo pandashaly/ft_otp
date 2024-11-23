@@ -43,33 +43,13 @@ def ft_parse_arguments():
 		ft_basic_checks(args.g)
 	else:
 		k_file_check(args.k)
-		ft_basic_checks(args.k)
+		#ft_basic_checks(args.k)
 	return args
 
 def k_file_check(arg):
 	if arg.endswith(k_file) == False:
 		print(f"Error: {k} file must be in {k_file} format")
 		exit(1)
-
-# def ft_save(file_name):
-# 	with open(file_name, 'r') as file:
-# 		hex_key = file.read()
-# 		salt = os.urandom(16)
-# 		comb = salt + bytes.fromhex(hex_key)
-# 		# We create a hash using sha256 algorithm
-# 		hash_obj = hashlib.sha256(comb)
-# 		encrypted_str = hash_obj.hexdigest()
-# 		with open('ft_otp.key', 'w') as key_key:
-# 			key_key.write(encrypted_str)
-# 	print('SUCCESSSSS! Your key was successfully saved in ft_otp.key.')
-
-# def ft_hash(file_name):
-# 	with open(file_name, "r") as file:
-# 		hex_key = file.read()
-# 		hash_obj = hashlib.sha256(hex_key.encode("utf-8"))
-# 		encrypted_str = hash_obj.hexdigest()
-# 		base64_key = base64.b64encode(encrypted_str)
-# 		return base64_key
 
 def ft_save(file_name):
 	with open(file_name, "r") as file:
