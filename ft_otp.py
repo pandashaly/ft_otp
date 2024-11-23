@@ -35,9 +35,9 @@ def ft_parse_arguments():
 	if not args.g and not args.k:
 		parser.error("Try -h for help.")
 	if args.g:
-		ft_basic_checks(args.g, ".hex", "hex")
+		ft_basic_checks(args.g)
 	else:
-		ft_basic_checks(args.k, ".key", "key")
+		ft_basic_checks(args.k)
 	return args
 
 def ft_save(file_name):
@@ -65,9 +65,9 @@ def ft_is_valid_hex(key):
 
 def ft_otp(arg):
 	with open(arg, "rb") as file:
-		encrypted_key = file.read()
+		encrypted_key = file.read() # open the encrypted file
 		try:
-			secret_key = fernet.decrypt(encrypted_key).decode()
+			secret_key = fernet.decrypt(encrypted_key).decode() #decrypt the key
 		except Exception as e:
 			print(f"Error: Unable to decrypt the key: {e}")
 			return
@@ -82,10 +82,7 @@ def ft_otp(arg):
 		otp = str(otp_t % 10**6).zfill(6)
 	print(f"Generated OTP: {otp}")
 
-def ft_basic_checks(arg, file_t, typ):
-	if arg.endswith(file_t) == False:
-		print(f"Error: {typ} file must be in {file_t} format")
-		exit(1)
+def ft_basic_checks(arg):
 	try:
 		with open(arg, "r") as file:
 			secret_key = file.read().strip()
