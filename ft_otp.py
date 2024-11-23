@@ -16,7 +16,6 @@ from cryptography.fernet import Fernet
 import os
 import sys
 import re
-import pyotp
 import argparse
 import struct
 import string
@@ -25,11 +24,9 @@ import hmac
 import base64
 import time
 
-ERR_64 = "Error: The key must be at least 64 hexidecimal characters."
+ERR_64 = "Error: (⁠ノ⁠•̀⁠ ⁠o⁠ ⁠•́⁠ ⁠)⁠ノ The key must be at least 64 hexidecimal characters."
 k_file = ".key"
 k = "key"
-fkey = Fernet.generate_key()
-f = Fernet(fkey)
 
 def ft_parse_arguments():
 	parser = argparse.ArgumentParser(description="""*** ft_otp *** OTP Generator""")
@@ -43,7 +40,6 @@ def ft_parse_arguments():
 		ft_basic_checks(args.g)
 	else:
 		k_file_check(args.k)
-		#ft_basic_checks(args.k)
 	return args
 
 def k_file_check(arg):
@@ -51,15 +47,34 @@ def k_file_check(arg):
 		print(f"Error: {k} file must be in {k_file} format")
 		exit(1)
 
+def ft_encrypt_decrypt(flag, stringIn):
+	# generate key, encrypt string, store encrypted string and the key
+	if flag == 1:
+		key = Fernet.generate_key()
+		fernet = Fernet(key)
+		encryptedString = fernet.encrypt(stringIn.encode())
+		with open("encryptionKey.txt", "wb") as f:
+			f.write(key)
+		with open("ft_otp.key", "wb") as f:
+			f.write(encryptedString)
+	# decript the file and return it
+	elif flag == 0:
+		try:
+			with open("encryptionKey.txt", "rb") as f:
+				key = f.read()
+			fernet = Fernet(key)
+			decryptedString = fernet.decrypt(stringIn).decode()
+			return decryptedString
+		except Exception as e:
+			print(f"Error: .⁠·⁠´⁠¯⁠⁠(⁠>⁠▂⁠<⁠)⁠´⁠¯⁠⁠·⁠. Unable to decrypt the key: {e}")
+			return None
+
 def ft_save(file_name):
 	with open(file_name, "r") as file:
 		hex_key = file.read().strip()
 		if not ft_is_valid_hex(hex_key):
 			return
-		hex_key_bytes = bytes.fromhex(hex_key)
-		encrypted_key = f.encrypt(hex_key_bytes) #fernet encription
-		with open("ft_otp.key", "wb") as key_file:
-			key_file.write(encrypted_key)
+		ft_encrypt_decrypt(1, hex_key)
 		print('SUCCESSSSS! Your key was successfully saved in ft_otp.key.')
 
 def ft_is_valid_hex(key):
@@ -76,11 +91,9 @@ def ft_is_valid_hex(key):
 def ft_otp(arg):
 	with open(arg, "rb") as file:
 		encrypted_key = file.read() # open the encrypted file
-		try:
-			secret_key = f.decrypt(encrypted_key).decode() #decrypt the key
-		except Exception as e:
-			print(f"Error: Unable to decrypt the key: {e}")
-			return
+		secret_key = ft_encrypt_decrypt(0, encrypted_key) #decrypt the key
+		if secret_key is None:
+				return
 		byte_key = bytes.fromhex(secret_key) # convert to bytes
 		current_time_step = int(time.time() // 30)  # 30 sec intervals (TOTP)
 		counter_bytes = struct.pack(">Q", current_time_step) #convert into a BIG endian (baso a longlong)
@@ -89,7 +102,11 @@ def ft_otp(arg):
 		truncated_hash = hmac_key[offset:offset + 4]
 		otp_t = struct.unpack(">I", truncated_hash)[0] & 0x7FFFFFFF #convert to int and mask to ensure its + value
 		otp = str(otp_t % 10**6).zfill(6)
-	print(f"Generated OTP: {otp}")
+	#print(f"Generated OTP: {otp}")
+	#print("＼(＾▽＾)／ Success! Your OTP has been gracefully generated!")
+	print("･ﾟ✧*:･ﾟ✧*:･ﾟ✧･ﾟ✧*:･ﾟ✧*:･ﾟ✧･ﾟ✧")
+	print(f"   ✨ Your OTP: {otp}  ✨")
+	print("･ﾟ✧*:･ﾟ✧*:･ﾟ✧･ﾟ✧*:･ﾟ✧*:･ﾟ✧･ﾟ✧")
 
 def ft_basic_checks(arg):
 	try:
@@ -98,7 +115,7 @@ def ft_basic_checks(arg):
 			if ft_is_valid_hex(secret_key):
 				print(f"Key: {secret_key} is valid.")
 			else:
-				print("Error: Invalid Key format.")
+				print("Error: Invalid Key format. .⁠·⁠´⁠¯⁠⁠(⁠>⁠▂⁠<⁠)⁠´⁠¯⁠⁠·⁠.")
 				return None
 	except Exception:
 		print(f"Error: Could not open file {arg}")
