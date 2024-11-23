@@ -27,6 +27,8 @@ import time
 ERR_64 = "Error: The key must be at least 64 hexidecimal characters."
 k_file = ".key"
 k = "key"
+fkey = Fernet.generate_key()
+f = Fernet(fkey)
 
 def ft_parse_arguments():
 	parser = argparse.ArgumentParser(description="""*** ft_otp *** OTP Generator""")
@@ -72,13 +74,13 @@ def ft_is_valid_hex(key):
 		return False
 
 def ft_otp(arg):
-	# with open(arg, "rb") as file:
-	# 	encrypted_key = file.read() # open the encrypted file
-	# 	try:
-	# 		secret_key = fernet.decrypt(encrypted_key).decode() #decrypt the key
-	# 	except Exception as e:
-	# 		print(f"Error: Unable to decrypt the key: {e}")
-	# 		return
+	with open(arg, "rb") as file:
+		encrypted_key = file.read() # open the encrypted file
+		try:
+			secret_key = f.decrypt(encrypted_key).decode() #decrypt the key
+		except Exception as e:
+			print(f"Error: Unable to decrypt the key: {e}")
+			return
 	with open(arg, "r") as file:
 		secret_key = file.read().strip()
 		byte_key = bytes.fromhex(secret_key) # convert to bytes
