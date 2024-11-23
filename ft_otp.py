@@ -25,6 +25,8 @@ import hmac
 import time
 
 ERR_64 = "Error: The key must be at least 64 hexidecimal characters."
+k_file = ".key"
+k = "key"
 
 def ft_parse_arguments():
 	parser = argparse.ArgumentParser(description="""*** ft_otp *** OTP Generator""")
@@ -37,8 +39,14 @@ def ft_parse_arguments():
 	if args.g:
 		ft_basic_checks(args.g)
 	else:
+		k_file_check(args.k)
 		ft_basic_checks(args.k)
 	return args
+
+def k_file_check(arg):
+	if arg.endswith(k_file) == False:
+		print(f"Error: {k} file must be in {k_file} format")
+		exit(1)
 
 def ft_save(file_name):
 	with open(file_name, 'r') as file:
@@ -64,13 +72,14 @@ def ft_is_valid_hex(key):
 		return False
 
 def ft_otp(arg):
-	with open(arg, "rb") as file:
-		encrypted_key = file.read() # open the encrypted file
-		try:
-			secret_key = fernet.decrypt(encrypted_key).decode() #decrypt the key
-		except Exception as e:
-			print(f"Error: Unable to decrypt the key: {e}")
-			return
+	# with open(arg, "rb") as file:
+	# 	encrypted_key = file.read() # open the encrypted file
+	# 	try:
+	# 		secret_key = fernet.decrypt(encrypted_key).decode() #decrypt the key
+	# 	except Exception as e:
+	# 		print(f"Error: Unable to decrypt the key: {e}")
+	# 		return
+	with open(arg, "r") as file:
 		secret_key = file.read().strip()
 		byte_key = bytes.fromhex(secret_key) # convert to bytes
 		current_time_step = int(time.time() // 30)  # 30 sec intervals (TOTP)
