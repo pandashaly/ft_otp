@@ -22,6 +22,7 @@ import struct
 import string
 import hashlib
 import hmac
+import base64
 import time
 
 ERR_64 = "Error: The key must be at least 64 hexidecimal characters."
@@ -50,17 +51,36 @@ def k_file_check(arg):
 		print(f"Error: {k} file must be in {k_file} format")
 		exit(1)
 
+# def ft_save(file_name):
+# 	with open(file_name, 'r') as file:
+# 		hex_key = file.read()
+# 		salt = os.urandom(16)
+# 		comb = salt + bytes.fromhex(hex_key)
+# 		# We create a hash using sha256 algorithm
+# 		hash_obj = hashlib.sha256(comb)
+# 		encrypted_str = hash_obj.hexdigest()
+# 		with open('ft_otp.key', 'w') as key_key:
+# 			key_key.write(encrypted_str)
+# 	print('SUCCESSSSS! Your key was successfully saved in ft_otp.key.')
+
+# def ft_hash(file_name):
+# 	with open(file_name, "r") as file:
+# 		hex_key = file.read()
+# 		hash_obj = hashlib.sha256(hex_key.encode("utf-8"))
+# 		encrypted_str = hash_obj.hexdigest()
+# 		base64_key = base64.b64encode(encrypted_str)
+# 		return base64_key
+
 def ft_save(file_name):
-	with open(file_name, 'r') as file:
-		hex_key = file.read()
-		salt = os.urandom(16)
-		comb = salt + bytes.fromhex(hex_key)
-		# We create a hash using sha256 algorithm
-		hash_obj = hashlib.sha256(comb)
-		encrypted_str = hash_obj.hexdigest()
-		with open('ft_otp.key', 'w') as key_key:
-			key_key.write(encrypted_str)
-	print('SUCCESSSSS! Your key was successfully saved in ft_otp.key.')
+	with open(file_name, "r") as file:
+		hex_key = file.read().strip()
+		if not ft_is_valid_hex(hex_key):
+			return
+		hex_key_bytes = bytes.fromhex(hex_key)
+		encrypted_key = f.encrypt(hex_key_bytes) #fernet encription
+		with open("ft_otp.key", "wb") as key_file:
+			key_file.write(encrypted_key)
+		print('SUCCESSSSS! Your key was successfully saved in ft_otp.key.')
 
 def ft_is_valid_hex(key):
 	if len(key) < 64 or not re.match("^[0-9a-fA-F]{64}$", key) or len(key) % 2 == 1:
@@ -81,8 +101,6 @@ def ft_otp(arg):
 		except Exception as e:
 			print(f"Error: Unable to decrypt the key: {e}")
 			return
-	with open(arg, "r") as file:
-		secret_key = file.read().strip()
 		byte_key = bytes.fromhex(secret_key) # convert to bytes
 		current_time_step = int(time.time() // 30)  # 30 sec intervals (TOTP)
 		counter_bytes = struct.pack(">Q", current_time_step) #convert into a BIG endian (baso a longlong)
@@ -117,4 +135,3 @@ if __name__ == "__main__":
 	main()
 
 #salt hashing ensures that there will always be some randomness to the hash
-# eg if 2 people have the smae pasweord, salt ensures the hash value wil;l always be unique
